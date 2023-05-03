@@ -1,0 +1,38 @@
+{
+    "lusid": {
+        "env": "FBN_LUSID_API_URL",
+        "config": "apiUrl"
+    },
+    "lusid_scheduler": {
+        "env": "FBN_SCHEDULER_API_URL",
+        "config": "schedulerUrl"
+    },
+    "finbourne_insights": {
+        "env": "FBN_INSIGHTS_API_URL",
+        "config": "insightsUrl"
+    },
+    "finbourne_identity": {
+        "env": "FBN_LUSID_IDENTITY_URL",
+        "config": "identityUrl"
+    },
+    "finbourne_access": {
+        "env": "FBN_LUSID_ACCESS_URL",
+        "config": "accessUrl"
+    },
+    "lusid_drive": {
+        "env": "FBN_DRIVE_API_URL",
+        "config": "driveUrl"
+    },
+    "luminesce": {
+        "env": "FBN_LUMI_API_URL",
+        "config": "lumiApiUrl"
+    },
+    "lusid_notifications": {
+        "env": "FBN_NOTIFICATIONS_API_URL",
+        "config": "notificationsUrl"
+    },
+    "lusid_configuration": {
+        "env": "FBN_CONFIGURATION_API_URL",
+        "config": "configurationUrl"
+    }
+}
