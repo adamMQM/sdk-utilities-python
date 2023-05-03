@@ -5,12 +5,14 @@ import inspect
 from fbnsdkutilities import ApiConfigurationLoader
 from fbnsdkutilities import ApiConfiguration
 from fbnsdkutilities import ProxyConfig
-
 import tests.sdk.petstore as petstore
 from tests.utilities import CredentialsSource
 from tests.utilities.temp_file_manager import TempFileManager
 
-source_config_details, config_keys = CredentialsSource.fetch_credentials(), CredentialsSource.fetch_config_keys()
+source_config_details, config_keys = (
+    CredentialsSource.fetch_credentials(),
+    CredentialsSource.fetch_config_keys(),
+)
 
 
 class ApiConfigurationLoaderTests(unittest.TestCase):
@@ -31,15 +33,17 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
         """
         # Use assertTrue to avoid leaking details when assertion fails
         for key, value in secrets.items():
-
             # If not a proxy configuration check against the ApiConfiguration
             if "proxy" not in key:
-                self.assertTrue(getattr(config, key) == secrets[key])
+                self.assertEqual(getattr(config, key), secrets[key])
             # Otherwise check against the ApiConfiguration.proxy_config
             elif config.proxy_config is None:
                 self.assertTrue(secrets.get("proxy_address", None) is None)
             else:
-                self.assertTrue(getattr(config.proxy_config, key.replace("proxy_", "")) == secrets[key])
+                self.assertTrue(
+                    getattr(config.proxy_config, key.replace("proxy_", ""))
+                    == secrets[key]
+                )
 
     def test_config_file_preferred_over_env_vars(self):
         """
@@ -50,19 +54,25 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
 
         secrets = {
             "api": {
-                config_keys[key]["config"]: value for key, value in source_config_details.items() if
-                value is not None and "proxy" not in key
+                config_keys[key]["config"]: value
+                for key, value in source_config_details.items()
+                if value is not None and "proxy" not in key
             },
             "proxy": {
-                config_keys[key]["config"]: value for key, value in source_config_details.items() if
-                value is not None and "proxy" in key
-            }
+                config_keys[key]["config"]: value
+                for key, value in source_config_details.items()
+                if value is not None and "proxy" in key
+            },
         }
 
-        env_vars = {config_keys[key]["env"]: "DUMMYVALUE" for key, value in source_config_details.items() if value is not None}
+        env_vars = {
+            config_keys[key]["env"]: "DUMMYVALUE"
+            for key, value in source_config_details.items()
+            if value is not None
+        }
 
         # Set the environment variables as desired
-        with patch.dict('os.environ', env_vars, clear=True):
+        with patch.dict("os.environ", env_vars, clear=True):
             # Create a temporary secrets file as desired
             secrets_file = TempFileManager.create_temp_file(secrets)
             # Load the config
@@ -72,7 +82,10 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
             # Ensure that the config is populated as expected
             self.assert_config_values(config, source_config_details)
 
-    @unittest.skipIf(CredentialsSource.fetch_credentials().__contains__("access_token"), "do not run on PR's")
+    @unittest.skipIf(
+        CredentialsSource.fetch_credentials().__contains__("access_token"),
+        "do not run on PR's",
+    )
     def test_missing_env_vars_uses_config_file(self):
         """
         This tests loading the configuration details in multiple different ways
@@ -86,11 +99,14 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
             }
         }
 
-        env_vars = {config_keys[key]["env"]: value for key, value in source_config_details.items() if
-                    value is not None and "token_url" not in key}
+        env_vars = {
+            config_keys[key]["env"]: value
+            for key, value in source_config_details.items()
+            if value is not None and "token_url" not in key
+        }
 
         # Set the environment variables as desired
-        with patch.dict('os.environ', env_vars, clear=True):
+        with patch.dict("os.environ", env_vars, clear=True):
             # Create a temporary secrets file as desired
             secrets_file = TempFileManager.create_temp_file(secrets)
             # Load the config
@@ -100,7 +116,10 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
             # Ensure that the config is populated as expected
             self.assert_config_values(config, source_config_details)
 
-    @unittest.skipIf(CredentialsSource.fetch_credentials().__contains__("access_token"), "do not run on PR's")
+    @unittest.skipIf(
+        CredentialsSource.fetch_credentials().__contains__("access_token"),
+        "do not run on PR's",
+    )
     def test_missing_config_file_vars_uses_env_vars(self):
         """
         This tests loading the configuration details in multiple different ways
@@ -110,19 +129,21 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
 
         secrets = {
             "api": {
-                config_keys[key]["config"]: value for key, value in source_config_details.items() if
-                value is not None and "proxy" not in key
+                config_keys[key]["config"]: value
+                for key, value in source_config_details.items()
+                if value is not None and "proxy" not in key
             },
             "proxy": {
-                config_keys[key]["config"]: value for key, value in source_config_details.items() if
-                value is not None and "proxy" in key and "token_url" not in key
-            }
+                config_keys[key]["config"]: value
+                for key, value in source_config_details.items()
+                if value is not None and "proxy" in key and "token_url" not in key
+            },
         }
 
         env_vars = {config_keys["token_url"]["env"]: source_config_details["token_url"]}
 
         # Set the environment variables as desired
-        with patch.dict('os.environ', env_vars, clear=True):
+        with patch.dict("os.environ", env_vars, clear=True):
             # Create a temporary secrets file as desired
             secrets_file = TempFileManager.create_temp_file(secrets)
             # Load the config
@@ -132,7 +153,10 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
             # Ensure that the config is populated as expected
             self.assert_config_values(config, source_config_details)
 
-    @unittest.skipIf(CredentialsSource.fetch_credentials().__contains__("access_token"), "do not run on PR's")
+    @unittest.skipIf(
+        CredentialsSource.fetch_credentials().__contains__("access_token"),
+        "do not run on PR's",
+    )
     def test_load_from_config_file_only(self):
         """
         This tests loading the configuration details in multiple different ways
@@ -142,19 +166,21 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
 
         secrets = {
             "api": {
-                config_keys[key]["config"]: value for key, value in source_config_details.items() if
-                value is not None and "proxy" not in key
+                config_keys[key]["config"]: value
+                for key, value in source_config_details.items()
+                if value is not None and "proxy" not in key
             },
             "proxy": {
-                config_keys[key]["config"]: value for key, value in source_config_details.items() if
-                value is not None and "proxy" in key
-            }
+                config_keys[key]["config"]: value
+                for key, value in source_config_details.items()
+                if value is not None and "proxy" in key
+            },
         }
 
         env_vars = {}
 
         # Set the environment variables as desired
-        with patch.dict('os.environ', env_vars, clear=True):
+        with patch.dict("os.environ", env_vars, clear=True):
             # Create a temporary secrets file as desired
             secrets_file = TempFileManager.create_temp_file(secrets)
             # Load the config
@@ -171,8 +197,12 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
         :return: None
         """
         # Set all the environment variables
-        env_vars = {config_keys[key]["env"]: value for key, value in source_config_details.items() if value is not None}
-        with patch.dict('os.environ', env_vars, clear=True):
+        env_vars = {
+            config_keys[key]["env"]: value
+            for key, value in source_config_details.items()
+            if value is not None
+        }
+        with patch.dict("os.environ", env_vars, clear=True):
             config = ApiConfigurationLoader.load(petstore)
 
         self.assert_config_values(config, source_config_details)
@@ -189,9 +219,12 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
         with self.assertRaises(ValueError) as ex:
             ApiConfigurationLoader.load(petstore, non_existent_secrets_file)
 
-        self.assertEqual(ex.exception.args[0], f"Provided secrets file of {non_existent_secrets_file} can not be found, please ensure you "
-                                               f"have correctly specified the full path to the file or don't provide a secrets file to use "
-                                               f"environment variables instead.")
+        self.assertEqual(
+            ex.exception.args[0],
+            f"Provided secrets file of {non_existent_secrets_file} can not be found, please ensure you "
+            f"have correctly specified the full path to the file or don't provide a secrets file to use "
+            f"environment variables instead.",
+        )
 
     def test_config_keys_aligned(self):
         """
@@ -209,13 +242,47 @@ class ApiConfigurationLoaderTests(unittest.TestCase):
         """
 
         # Get the set of keys for proxy settings and api credentials
-        proxy_config_key_set = set([key.replace("proxy_", "") for key in config_keys.keys() if "proxy" in key])
-        api_config_key_set = set([key for key in config_keys.keys() if "proxy" not in key])
+        proxy_config_key_set = set(
+            [key.replace("proxy_", "") for key in config_keys.keys() if "proxy" in key]
+        )
+        api_config_key_set = set(
+            [key for key in config_keys.keys() if "proxy" not in key]
+        )
 
         # Get the attributes on the ProxyConfig and ApiConfiguration Classes
-        api_config_attributes = set([attribute[0] for attribute in inspect.getmembers(ApiConfiguration)])
-        proxy_config_attributes = set([attribute[0] for attribute in inspect.getmembers(ProxyConfig)])
+        api_config_attributes = set(
+            [attribute[0] for attribute in inspect.getmembers(ApiConfiguration)]
+        )
+        proxy_config_attributes = set(
+            [attribute[0] for attribute in inspect.getmembers(ProxyConfig)]
+        )
 
         # Ensure that the config file is a subset of the attributes on these classes to ensure seamless instance creation
         self.assertTrue(proxy_config_key_set.issubset(proxy_config_attributes))
         self.assertTrue(api_config_key_set.issubset(api_config_attributes))
+
+    def test_packages_missing_utilities_have_config_set_correctly(self):
+        """
+        This test checks that the config is still correctly loaded when
+        the utilities module is not present in the SDK.
+        """
+        sdk = unittest.mock.Mock()
+        sdk.__name__ = "lusid"
+        # Remove the auto-mocked utilities property
+        del sdk.utilities
+        source_config_details = CredentialsSource.fetch_credentials()
+
+        # Set all the environment variables
+        env_vars = {
+            config_keys[key]["env"]: value
+            for key, value in source_config_details.items()
+            if value is not None and key != "FBN_SDK_API_URL"
+        }
+        test_api_url = "test val"
+        # api url is FBN_LUSID_API_URL for lusid sdk
+        env_vars["FBN_LUSID_API_URL"] = test_api_url
+        source_config_details["api_url"] = test_api_url
+        with patch.dict("os.environ", env_vars, clear=True):
+            config = ApiConfigurationLoader.load(sdk)
+
+        self.assert_config_values(config, source_config_details)
